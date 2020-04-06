@@ -5,31 +5,40 @@ import (
 	//"errors"
 )
 
-type RawDepth struct {
-	Bids [][2]string `json:"bids"`
-	Asks [][2]string `json:"asks"`
+type UpdateMessage struct {
+	Method string `json:"method"`
+	Params []interface{} `json:"params"`
 }
 
+type SubscribeMessage struct {
+	id string
+	method string
+	params []string
+}
+
+type RawDepth struct {
+	Clean bool
+	Bids [][2]string
+	Asks [][2]string
+	Market string
+}
+
+// pooled depth message
 type Depth struct {
 	pool.ReferenceCounter `json:"-"`
 	RawDepth
 }
 
 func (d *Depth) Reset() {
+	d.Clean = false
 	d.Bids = nil
 	d.Asks = nil
-	d.LastUpdateID = 0
+	d.Market = nil
 }
 
 // Used by reference countable pool
 func ResetDepth(i interface{}) error {
 	return nil
-	// obj, ok := i.(*Depth)
-	// if !ok {
-	// 	return errors.New("illegal object sent to ResetDepth")
-	// }
-	// obj.Reset()
-	// return nil
 }
 
 // depth pool
