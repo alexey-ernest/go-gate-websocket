@@ -295,7 +295,7 @@ func (ws *WsConn) Close() {
 
 	err := ws.c.Close()
 	if err != nil {
-		log.Println("[ws][%s] close websocket error: %s", ws.WsUrl, err)
+		log.Printf("[ws][%s] close websocket error: %s", ws.WsUrl, err)
 	}
 
 	if ws.IsDump {
