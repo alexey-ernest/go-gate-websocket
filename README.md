@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/alexey-ernest/go-gate-websocket.svg?branch=master)](https://travis-ci.com/alexey-ernest/go-gate-websocket)
+
 # go-gate-websocket
 Gate.io websocket client with optimized latency by leveraging object pool and fast json deserializer
 
