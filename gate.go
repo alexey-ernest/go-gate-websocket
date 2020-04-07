@@ -51,7 +51,8 @@ func (this *gateWs) SubscribeDepth(pair string, callback func (*Depth)) (error, 
 	close := make(chan struct{})
 
 	handle := func(msg []byte) error {
-		method := jsoniter.Get(msg, "method").ToString()
+		method := string(msg[12:24]) // manually parsing byte array is much faster
+		//method := jsoniter.Get(msg, "method").ToString()
 		if method != depthUpdateMethod {
 			return nil
 		}
@@ -59,10 +60,24 @@ func (this *gateWs) SubscribeDepth(pair string, callback func (*Depth)) (error, 
 		// parsing message to the depth format
 		rawDepth := AcquireDepth()
 
-		rawDepth.Clean = jsoniter.Get(msg, "params", 0).ToBool()
-		rawDepth.Market = jsoniter.Get(msg, "params", 2).ToString()
+		rawDepth.Clean = string(msg[38:42]) == "true" // manually parsing byte array is much faster
+		//rawDepth.Clean = jsoniter.Get(msg, "params", 0).ToBool()
+		
+		// manually cutting params related bytes, it is much faster than parsing the whole message
+		paramsStarts := 44
+		if !rawDepth.Clean {
+			paramsStarts++
+		}
+		paramsbytes := msg[paramsStarts:len(msg)-14]
+		for i := len(paramsbytes) - 1; i >= 0; i -= 1 {
+			if paramsbytes[i] == '}' {
+				paramsbytes = paramsbytes[:i+1]
+				break
+			}
+		}
+		//paramsbytes := []byte(jsoniter.Get(msg, "params", 1).ToString())
 
-		paramsbytes := []byte(jsoniter.Get(msg, "params", 1).ToString())		
+		// parsing params
 		if err := json.Unmarshal(paramsbytes, &rawDepth); err != nil {
 			log.Printf("json unmarshal error: %s, %s", err, string(msg))
 			return err

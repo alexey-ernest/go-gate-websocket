@@ -20,7 +20,6 @@ type RawDepth struct {
 	Clean bool
 	Bids [][2]string
 	Asks [][2]string
-	Market string
 }
 
 // pooled depth message
@@ -33,7 +32,6 @@ func (d *Depth) Reset() {
 	d.Clean = false
 	d.Bids = nil
 	d.Asks = nil
-	d.Market = ""
 }
 
 // Used by reference countable pool

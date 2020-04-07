@@ -39,8 +39,8 @@ func TestGateDepthMessage(t *testing.T) {
 	}
 
 	msg := <- messages
-	if msg.Market == "" {
-		t.Errorf("Market should be defined")
+	if !msg.Clean {
+		t.Errorf("First depth update message should be clean")
 	}
 	if len(msg.Bids) == 0 && len(msg.Asks) == 0 {
 		t.Errorf("Depth update should contain asks or bids")
@@ -51,7 +51,9 @@ func TestGateDepthMessage(t *testing.T) {
 
 func BenchmarkGateMessageHandling(b *testing.B) {
 	ws := NewGateWs()
-	err, close := ws.SubscribeDepth("BTC_USDT2", func (d *Depth) {})
+	err, close := ws.SubscribeDepth("BTC_USDT2", func (d *Depth) {
+		d.DecrementReferenceCount() // release the object to the object pool for re-use
+	})
 	if err != nil {
 		b.Fatalf("failed to connect to gate websocket")
 	}
@@ -63,7 +65,5 @@ func BenchmarkGateMessageHandling(b *testing.B) {
 	msg := []byte("{\"method\": \"depth.update\", \"params\": [false, {\"asks\": [[\"7295.91\", \"0.144\"], [\"7296.35\", \"0\"]], \"bids\": [[\"7281.02\", \"0\"], [\"7275\", \"0.002\"]]}, \"BTC_USDT\"], \"id\": null}")
 	for i := 0; i < b.N; i += 1 {
 		ws.Conn.ReceiveMessage(msg)
-	}
-
-	
+	}	
 }
