@@ -10,10 +10,10 @@ type UpdateMessage struct {
 	Params []interface{} `json:"params"`
 }
 
-type SubscribeMessage struct {
-	id string
-	method string
-	params []string
+type subscribeMessage struct {
+	Id int `json:"id"`
+	Method string `json:"method"`
+	Params []interface{} `json:"params"`
 }
 
 type RawDepth struct {
@@ -33,7 +33,7 @@ func (d *Depth) Reset() {
 	d.Clean = false
 	d.Bids = nil
 	d.Asks = nil
-	d.Market = nil
+	d.Market = ""
 }
 
 // Used by reference countable pool

@@ -11,6 +11,8 @@ func TestGateDepthConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to connect to gate websocket")
 	}
+
+	time.Sleep(time.Duration(1) * time.Second)
 	close <- struct{}{}
 }
 
@@ -21,8 +23,8 @@ func TestGateDepthCloseConnectionDirectly(t *testing.T) {
 		t.Fatalf("failed to connect to gate websocket")
 	}
 	
-	ws.Conn.Close()
 	time.Sleep(time.Duration(1) * time.Second)
+	ws.Conn.Close()
 }
 
 func TestGateDepthMessage(t *testing.T) {
@@ -33,11 +35,11 @@ func TestGateDepthMessage(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Fatalf("failed to connect to binance @depth websocket")
+		t.Fatalf("failed to connect to gate websocket")
 	}
 
 	msg := <- messages
-	if msg.Market == nil {
+	if msg.Market == "" {
 		t.Errorf("Market should be defined")
 	}
 	if len(msg.Bids) == 0 && len(msg.Asks) == 0 {
@@ -48,20 +50,20 @@ func TestGateDepthMessage(t *testing.T) {
 }
 
 func BenchmarkGateMessageHandling(b *testing.B) {
-	ws := NewBinanceWs()
-	//messages := make(chan *Depth, 10)
-	err, close := ws.SubscribeDepth("BTC_USDT2", func (d *Depth) {
-		d.DecrementReferenceCount()
-	})
+	ws := NewGateWs()
+	err, close := ws.SubscribeDepth("BTC_USDT2", func (d *Depth) {})
 	if err != nil {
 		b.Fatalf("failed to connect to gate websocket")
 	}
 
+	time.Sleep(time.Duration(1) * time.Second)
+	close <- struct{}{}
+
 	b.ResetTimer()
-	msg := []byte("{\"method\": \"depth.update\", \"params\": [true, {\"asks\": [[\"8000.00\",\"9.6250\"]],\"bids\": [[\"8000.00\",\"9.6250\"]]}, \"EOS_USDT\"],\"id\": null}")
+	msg := []byte("{\"method\": \"depth.update\", \"params\": [false, {\"asks\": [[\"7295.91\", \"0.144\"], [\"7296.35\", \"0\"]], \"bids\": [[\"7281.02\", \"0\"], [\"7275\", \"0.002\"]]}, \"BTC_USDT\"], \"id\": null}")
 	for i := 0; i < b.N; i += 1 {
 		ws.Conn.ReceiveMessage(msg)
 	}
 
-	close <- struct{}{}
+	
 }

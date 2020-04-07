@@ -107,7 +107,7 @@ func (ws *WsConn) connect() error {
 
 	wsConn, resp, err := dialer.Dial(ws.WsUrl, http.Header(ws.ReqHeaders))
 	if err != nil {
-		log.Printf("[ws][%s] %s", ws.WsUrl, err.Error())
+		log.Printf("[ws][%s] error: %s", ws.WsUrl, err.Error())
 		if ws.IsDump && resp != nil {
 			dumpData, _ := httputil.DumpResponse(resp, true)
 			log.Printf("[ws][%s] %s", ws.WsUrl, string(dumpData))
@@ -178,7 +178,7 @@ func (ws *WsConn) writeRequest() {
 		}
 
 		if err != nil {
-			log.Printf("[ws][%s] %s", ws.WsUrl, err.Error())
+			log.Printf("[ws][%s] write error: %s", ws.WsUrl, err.Error())
 			time.Sleep(time.Second)
 		}
 	}
@@ -254,7 +254,7 @@ func (ws *WsConn) receiveMessage() {
 		}
 
 		if err != nil {
-			log.Printf("[ws] error: %s", err)
+			log.Printf("[ws][%s] error: %s", ws.WsUrl, err)
 			if ws.IsAutoReconnect {
 				log.Printf("[ws][%s] Unexpected Closed, Begin Retry Connect.", ws.WsUrl)
 				ws.reconnect()
@@ -285,16 +285,20 @@ func (ws *WsConn) receiveMessage() {
 }
 
 func (ws *WsConn) Close() {
+	if ws.isClosed {
+		return
+	}
+
 	ws.isClosed = true
 	ws.close <- struct{}{}
 	close(ws.close)
 
 	err := ws.c.Close()
 	if err != nil {
-		log.Println("[ws]", ws.WsUrl, "close websocket error ,", err)
+		log.Println("[ws][%s] close websocket error: %s", ws.WsUrl, err)
 	}
 
 	if ws.IsDump {
-		log.Println("[ws]", ws.WsUrl, "connection closed")	
+		log.Printf("[ws][%s] connection closed", ws.WsUrl)	
 	}
 }
