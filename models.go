@@ -5,11 +5,6 @@ import (
 	//"errors"
 )
 
-type UpdateMessage struct {
-	Method string `json:"method"`
-	Params []interface{} `json:"params"`
-}
-
 type subscribeMessage struct {
 	Id int `json:"id"`
 	Method string `json:"method"`
